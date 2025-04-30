@@ -1,3 +1,5 @@
+import task.*;
+
 public class Main {
 
     public static void main(String[] args) {
@@ -30,7 +32,7 @@ public class Main {
         System.out.println(trackerTasksSubtask1);
         System.out.println(trackerTasksSubtask2);
 
-        //обновляем статус сабтаска2
+        //обновляем статус подзадача2
         trackerTasksSubtask2.setStatus(Status.DONE);
         taskManager.updateSubtask(trackerTasksSubtask2);
         System.out.println(trackerTasksSubtask2);
