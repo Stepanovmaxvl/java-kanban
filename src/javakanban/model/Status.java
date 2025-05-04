@@ -1,4 +1,4 @@
-package task;
+package javakanban.model;
 
 public enum Status {
     NEW,

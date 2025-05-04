@@ -1,10 +1,10 @@
-package task;
+package javakanban.model;
 
 import java.util.ArrayList;
 
 public class Epic extends Task {
 
-    private ArrayList<Integer> subtaskId = new ArrayList<>();
+    private ArrayList<Integer> subtasksId = new ArrayList<>();
 
     public Epic(String name, String description) {
         super(name, description);
@@ -15,23 +15,23 @@ public class Epic extends Task {
     }
 
     public void addSubtask(int subtask) {
-        subtaskId.add(subtask);
+        subtasksId.add(subtask);
     }
 
     public void clearSubtasks() {
-        subtaskId.clear();
+        subtasksId.clear();
     }
 
     public ArrayList<Integer> getSubtaskId() {
-        return subtaskId;
+        return subtasksId;
     }
 
     public void setSubtaskList(ArrayList<Integer> subtaskId) {
-        this.subtaskId = subtaskId;
+        this.subtasksId = subtaskId;
     }
 
     public void removeEpicSubtask(Integer idSubtask) {
-        subtaskId.remove(idSubtask);
+        subtasksId.remove(idSubtask);
     }
 
     @Override
@@ -40,7 +40,7 @@ public class Epic extends Task {
                 "name= " + getName() + '\'' +
                 ", description = " + getDescription() + '\'' +
                 ", id=" + getId() +
-                ", subtaskList.size = " + subtaskId.size() +
+                ", subtaskList.size = " + subtasksId.size() +
                 ", status = " + getStatus() +
                 '}';
     }

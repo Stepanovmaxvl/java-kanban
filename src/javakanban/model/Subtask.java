@@ -1,21 +1,21 @@
-package task;
+package javakanban.model;
 
 public class Subtask extends Task {
 
-    private final int epicID;
+    private final int epicId;
 
     public Subtask(String name, String description, int epicID) {
         super(name, description);
-        this.epicID = epicID;
+        this.epicId = epicID;
     }
 
     public Subtask(int id, String name, String description, Status status, int epicID) {
         super(id, name, description, status);
-        this.epicID = epicID;
+        this.epicId = epicID;
     }
 
-    public int getEpicID() {
-        return epicID;
+    public int getEpicId() {
+        return epicId;
     }
 
     @Override
@@ -24,7 +24,7 @@ public class Subtask extends Task {
                 "name='" + getName() + '\'' +
                 ", description='" + getDescription() + '\'' +
                 ", id=" + getId() +
-                ", epicID=" + epicID +
+                ", epicID=" + epicId +
                 ", status=" + getStatus() +
                 '}';
     }
