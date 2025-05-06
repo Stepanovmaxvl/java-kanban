@@ -1,9 +1,8 @@
-package javakanban;
+package main.javakanban;
 
-import javakanban.manager.InMemoryTaskManager;
-import javakanban.manager.Managers;
-import javakanban.manager.TaskManager;
-import javakanban.model.*;
+import main.javakanban.manager.task.InMemoryTaskManager;
+import main.javakanban.manager.task.Managers;
+import main.javakanban.model.*;
 
 public class Main {
 

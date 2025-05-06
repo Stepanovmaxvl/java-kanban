@@ -1,4 +1,4 @@
-package javakanban.model;
+package main.javakanban.model;
 
 public class Subtask extends Task {
 

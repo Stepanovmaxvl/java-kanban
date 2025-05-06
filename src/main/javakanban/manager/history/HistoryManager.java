@@ -1,6 +1,6 @@
-package javakanban.manager;
+package main.javakanban.manager.history;
 
-import javakanban.model.Task;
+import main.javakanban.model.Task;
 
 import java.util.List;
 

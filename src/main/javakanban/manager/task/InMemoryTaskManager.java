@@ -1,6 +1,8 @@
-package javakanban.manager;
+package main.javakanban.manager.task;
 
-import javakanban.model.*;
+import main.javakanban.manager.history.HistoryManager;
+import main.javakanban.manager.history.InMemoryHistoryManager;
+import main.javakanban.model.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,11 +14,11 @@ public class InMemoryTaskManager implements TaskManager {
     private final Map<Integer, Task> tasks = new HashMap<>();
     private final Map<Integer, Epic> epics = new HashMap<>();
     private final Map<Integer, Subtask> subtasks = new HashMap<>();
-    private final HistoryManager historyManager = Managers.getDefaultHistory();
+    private final HistoryManager historyManager = new InMemoryHistoryManager();
 
     private int id = 1;
 
-    public int getNextId() {
+    private int getNextId() {
         return id++;
     }
 

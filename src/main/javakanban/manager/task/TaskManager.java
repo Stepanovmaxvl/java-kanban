@@ -1,15 +1,15 @@
-package javakanban.manager;
+package main.javakanban.manager.task;
 
-import javakanban.model.Epic;
-import javakanban.model.Subtask;
-import javakanban.model.Task;
+import main.javakanban.model.Epic;
+import main.javakanban.model.Subtask;
+import main.javakanban.model.Task;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public interface TaskManager {
 
-    int getNextId();
+    //int getNextId();
 
       //создаем тип "Задача"
     Task addTask(Task task);
