@@ -1,4 +1,4 @@
-package test.javakanban.test.model;
+package test.javakanban.model;
 
 import main.javakanban.model.*;
 import org.junit.jupiter.api.Test;

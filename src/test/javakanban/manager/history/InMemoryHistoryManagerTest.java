@@ -1,4 +1,4 @@
-package test.javakanban.test.manager.history;
+package test.javakanban.manager.history;
 
 import main.javakanban.manager.task.InMemoryTaskManager;
 import main.javakanban.manager.task.Managers;
@@ -28,7 +28,6 @@ class InMemoryHistoryManagerTest {
         for (int i = 0; i < 20; i++) {
             taskManager.addTask(new Task("Задача n", "Описание n"));
         }
-
         List<Task> tasks = taskManager.getTasks();
         for (Task task : tasks) {
             taskManager.getTaskByID(task.getId());

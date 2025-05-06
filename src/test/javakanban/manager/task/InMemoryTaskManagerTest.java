@@ -1,4 +1,4 @@
-package test.javakanban.test.manager.task;
+package test.javakanban.manager.task;
 
 import main.javakanban.manager.task.InMemoryTaskManager;
 import main.javakanban.manager.task.Managers;
