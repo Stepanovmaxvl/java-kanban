@@ -1,4 +1,4 @@
-package main.javakanban.manager.task;
+package main.javakanban.manager;
 
 import main.javakanban.manager.history.HistoryManager;
 import main.javakanban.manager.history.InMemoryHistoryManager;

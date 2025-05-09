@@ -7,30 +7,16 @@ import java.util.*;
 
 public class InMemoryHistoryManager implements HistoryManager {
 
+
     private static final int MAX_HISTORY_STORAGE = 10;
-    private final List<Task> historyList = new ArrayList<>();
+    private final List<Task> historyList = new LinkedList<>();
 
     @Override
     public void add(Task task) {
         if (historyList.size() == MAX_HISTORY_STORAGE) {
             historyList.removeFirst();
         }
-        historyList.add(task);
-    }
-
-    public void update(Task newTask) {
-           int index = historyList.indexOf(newTask);
-
-        if (index != -1) {
-            Task previousTask = historyList.get(index);
-            if (previousTask != null) {
-                add(previousTask);
-            }
-
-            historyList.set(index, newTask);
-        } else {
-            add(newTask);
-        }
+        historyList.add(task.clone());
     }
 
     @Override

@@ -2,7 +2,7 @@ package main.javakanban.model;
 
 import java.util.Objects;
 
-public class Task {
+public class Task implements Cloneable {
 
     private String name;
     private String description;
@@ -20,6 +20,15 @@ public class Task {
         this.name = name;
         this.description = description;
         this.status = Status.NEW;
+    }
+
+    @Override
+    public Task clone() {
+        try {
+            return (Task) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError("Клонирование не поддерживается");
+        }
     }
 
     public String getName() {

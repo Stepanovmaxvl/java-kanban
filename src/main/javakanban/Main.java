@@ -1,7 +1,7 @@
 package main.javakanban;
 
 import main.javakanban.manager.task.InMemoryTaskManager;
-import main.javakanban.manager.task.Managers;
+import main.javakanban.manager.Managers;
 import main.javakanban.model.*;
 
 public class Main {
@@ -27,11 +27,11 @@ public class Main {
 
         Epic trackerTasks = new Epic("Реализовать трекер задач", "Нужно реализовать сервис, который создает и взаимодействую с типами задач: Эпик, задача, подзадача ");
         inMemoryTaskManager.addEpic(trackerTasks);
-        Subtask flatRenovationSubtask1 = new Subtask("Реализовать тип задачи \"Задача\"", "У пользователя должна быть возможность создать тип Задача",
+        Subtask flatRenovationSubtask1 = new Subtask("Реализовать тип задачи \"Задача\"", "У пользователя должна быть возможность создать тип Задача", Status.NEW,
                 trackerTasks.getId());
-        Subtask flatRenovationSubtask2 = new Subtask("Реализовать тип задачи \"Эпик\"", "У пользователя должна быть возможность создать тип Подзадача",
+        Subtask flatRenovationSubtask2 = new Subtask("Реализовать тип задачи \"Эпик\"", "У пользователя должна быть возможность создать тип Подзадача", Status.NEW,
                 trackerTasks.getId());
-        Subtask flatRenovationSubtask3 = new Subtask("Реализовать тестирование сервисов", "У dev и QA должна быть возможность протестировать исходный код",
+        Subtask flatRenovationSubtask3 = new Subtask("Реализовать тестирование сервисов", "У dev и QA должна быть возможность протестировать исходный код", Status.NEW,
                 trackerTasks.getId());
         inMemoryTaskManager.addSubtask(flatRenovationSubtask1);
         inMemoryTaskManager.addSubtask(flatRenovationSubtask2);

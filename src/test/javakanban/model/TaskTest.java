@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class TaskTest {
 
-
     @Test
     public void equals_returnTrue_idAreSame() {
         Task task1 = new Task(10, "Задача 1", "Сделать Задачу 1", Status.NEW);

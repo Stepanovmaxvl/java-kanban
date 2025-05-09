@@ -1,6 +1,8 @@
 package test.javakanban.model;
 
+import main.javakanban.manager.task.InMemoryTaskManager;
 import main.javakanban.model.Epic;
+import main.javakanban.model.Subtask;
 import org.junit.jupiter.api.Test;
 import main.javakanban.model.Status;
 
@@ -15,4 +17,15 @@ class EpicTest {
                 Status.IN_PROGRESS);
         assertTrue(epic1.equals(epic2));
     }
+
+    @Test
+    public void addSubtask_notAddSubtask_subtaskIdSameWithEpicId() {
+        InMemoryTaskManager taskManager = new InMemoryTaskManager();
+        Epic epic = new Epic(1, "Эпик", "Описание эпика", Status.NEW);
+        taskManager.addEpic(epic);
+        Subtask subtask = new Subtask("Сабтаск", "Описание сабтаска", Status.NEW, epic.getId());
+        subtask.setId(epic.getId()); // Устанавливаем ID сабтаска равным ID эпика
+        assertFalse(epic.equals(subtask));
+    }
+
 }

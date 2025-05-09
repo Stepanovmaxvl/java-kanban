@@ -1,7 +1,6 @@
 package test.javakanban.manager.task;
 
 import main.javakanban.manager.task.InMemoryTaskManager;
-import main.javakanban.manager.task.Managers;
 import main.javakanban.manager.task.TaskManager;
 import main.javakanban.model.Epic;
 import main.javakanban.model.Status;
@@ -14,7 +13,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class InMemoryTaskManagerTest {
+public class InMemoryTaskManagerTest {
 
     private static TaskManager taskManager;
 
@@ -24,13 +23,16 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void equals_isNotReturnMessage_idTaskAreSame() {
+    void addTask_returnSameId_taskIsAdded() {
         //проверяем, что InMemoryTaskManager добавляет задачи и может найти их по id;
         final Task task = taskManager.addTask(new Task("Задача 1", "Сделать Задачу 1"));
         final Task savedTask = taskManager.getTaskByID(task.getId());
         assertNotNull(savedTask, "Задача не найдена.");
         assertEquals(task, savedTask, "Задачи не совпадают.");
-
+    }
+    @Test
+    void getTasks_addNewTask_idTaskAreSame(){
+        final Task task = taskManager.addTask(new Task("Задача 1", "Сделать Задачу 1"));
         final List<Task> tasks = taskManager.getTasks();
         assertNotNull(tasks, "Задачи не возвращаются.");
         assertEquals(1, tasks.size(), "Неверное количество задач.");
@@ -38,7 +40,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void equals_isNotReturnMessage_idEpicAreSame() {
+    void addEpic_returnSameId_epicIsAdded() {
         //проверяем, что InMemoryTaskManager добавляет эпики и подзадачи и может найти их по id;
         final Epic flatRenovation = taskManager.addEpic(new Epic("Сделать ремонт",
                 "Нужно успеть за отпуск"));
@@ -54,14 +56,14 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void equals_isNotReturnMessage_idSubtaskAreSame() {
+    void addSubtask_returnSameId_subtaskIsAdded() {
         final Epic flatRenovation = taskManager.addEpic(new Epic("Сделать ремонт",
                 "Нужно успеть за отпуск"));
         final Subtask flatRenovationSubtask1 = taskManager.addSubtask(new Subtask("Поклеить обои",
-                "Обязательно светлые!", flatRenovation.getId()));
+                "Обязательно светлые!", Status.NEW, flatRenovation.getId()));
         final Subtask flatRenovationSubtask2 = taskManager.addSubtask(new Subtask("Установить новую технику",
-                "Старую продать на Авито", flatRenovation.getId()));
-        final Subtask flatRenovationSubtask3 = taskManager.addSubtask(new Subtask("Заказать книжный шкаф", "Из темного дерева",
+                "Старую продать на Авито",Status.NEW, flatRenovation.getId()));
+        final Subtask flatRenovationSubtask3 = taskManager.addSubtask(new Subtask("Заказать книжный шкаф", "Из темного дерева",Status.NEW,
                 flatRenovation.getId()));
         final Subtask savedSubtask1 = taskManager.getSubtaskByID(flatRenovationSubtask1.getId());
         final Subtask savedSubtask2 = taskManager.getSubtaskByID(flatRenovationSubtask2.getId());
@@ -76,7 +78,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    public void equals_updateTask_idTaskAreSame () {
+    public void updateTask_returnUpdatedTask_taskIsUpdated()  {
         final Task expected = new Task("имя", "описание");
         taskManager.addTask(expected);
         final Task updatedTask = new Task(expected.getId(), "новое имя", "новое описание", Status.DONE);
@@ -85,7 +87,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    public void equals_updateEpic_idTaskAreSame () {
+    public void updateEpic_returnUpdatedEpic_epicIsUpdated () {
         final Epic expected = new Epic("имя", "описание");
         taskManager.addEpic(expected);
         final Epic updatedEpic = new Epic(expected.getId(), "новое имя", "новое описание", Status.DONE);
@@ -94,19 +96,19 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    public void equals_updateSubtask_idTaskAreSame () {
+    public void updateSubtask_returnSameId_subtaskIsUpdated () {
         final Epic epic = new Epic("имя", "описание");
         taskManager.addEpic(epic);
-        final Subtask expected = new Subtask("имя", "описание", epic.getId());
+        final Subtask expected = new Subtask("имя", "описание",Status.NEW, epic.getId());
         taskManager.addSubtask(expected);
-        final Subtask updatedSubtask = new Subtask(expected.getId(), "новое имя", "новое описание",
+        final Subtask updatedSubtask = new Subtask( "новое имя", "новое описание",
                 Status.DONE, epic.getId());
-        final Subtask actual = taskManager.updateSubtask(updatedSubtask);
+        final Subtask actual = taskManager.updateSubtask(expected);
         assertEquals(expected, actual, "Вернулась подзадача с другим id");
     }
 
     @Test
-    public void isEmpty_deleteTask_returnEmptyList() {
+    public void deleteTask_returnEmptyList_tasksAreDeleted() {
         taskManager.addTask(new Task("Купить книги", "Список в заметках"));
         taskManager.addTask(new Task("Помыть полы", "С новым средством"));
         taskManager.deleteTasks();
@@ -115,7 +117,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    public void isEmpty_deleteEpic_returnEmptyList() {
+    public void deleteEpic_returnEmptyList_epicsAreDeleted() {
         taskManager.addEpic(new Epic("Сделать ремонт", "Нужно успеть за отпуск"));
         taskManager.deleteEpics();
         List<Epic> epics = taskManager.getEpics();
@@ -123,14 +125,14 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    public void isEmpty_deleteSubtask_returnEmptyList() {
+    public void deleteSubtask_returnEmptyList_subtasksAreDeleted() {
         Epic flatRenovation = new Epic("Сделать ремонт", "Нужно успеть за отпуск");
         taskManager.addEpic(flatRenovation);
-        taskManager.addSubtask(new Subtask("Поклеить обои", "Обязательно светлые!",
+        taskManager.addSubtask(new Subtask("Поклеить обои", "Обязательно светлые!", Status.NEW,
                 flatRenovation.getId()));
-        taskManager.addSubtask(new Subtask("Установить новую технику", "Старую продать на Авито",
+        taskManager.addSubtask(new Subtask("Установить новую технику", "Старую продать на Авито",Status.NEW,
                 flatRenovation.getId()));
-        taskManager.addSubtask(new Subtask("Заказать книжный шкаф", "Из темного дерева",
+        taskManager.addSubtask(new Subtask("Заказать книжный шкаф", "Из темного дерева",Status.NEW,
                 flatRenovation.getId()));
 
         taskManager.deleteSubtasks();
@@ -139,14 +141,14 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    public void isNull_deleteTask_returnNullIfKeyIsMissing() {
+    public void deleteTask_returnNull_keyIsMissing() {
         taskManager.addTask(new Task(1, "Купить книги", "Список в заметках", Status.NEW));
         taskManager.addTask(new Task(2, "Помыть полы", "С новым средством", Status.DONE));
         assertNull(taskManager.deleteTaskByID(3));
     }
 
     @Test
-    public void isNull_deleteEpic_returnNullIfKeyIsMissing() {
+    public void deleteEpic_returnNull_keyIsMissing() {
         taskManager.addEpic(new Epic(1, "Сделать ремонт", "Нужно успеть за отпуск", Status.IN_PROGRESS));
         taskManager.deleteEpicByID(1);
         assertNull(taskManager.deleteTaskByID(1));
@@ -154,7 +156,7 @@ class InMemoryTaskManagerTest {
 
 
     @Test
-    void equals_addTask_addTask_variablesAreSame() {
+    void addTask_addSameTask_taskIsAdded() {
         Task expected = new Task(1, "Помыть полы", "С новым средством", Status.DONE);
         taskManager.addTask(expected);
         List<Task> list = taskManager.getTasks();
