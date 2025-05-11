@@ -20,12 +20,9 @@ class EpicTest {
 
     @Test
     public void addSubtask_notAddSubtask_subtaskIdSameWithEpicId() {
-        InMemoryTaskManager taskManager = new InMemoryTaskManager();
         Epic epic = new Epic(1, "Эпик", "Описание эпика", Status.NEW);
-        taskManager.addEpic(epic);
-        Subtask subtask = new Subtask("Сабтаск", "Описание сабтаска", Status.NEW, epic.getId());
-        subtask.setId(epic.getId()); // Устанавливаем ID сабтаска равным ID эпика
-        assertFalse(epic.equals(subtask));
+        int subtaskId = epic.getId();
+        epic.addSubtask(subtaskId);
+        assertTrue(epic.getSubtaskId().isEmpty(), "Сабтаск с тем же ID, что и у эпика, не должен добавляться");
     }
-
 }

@@ -4,13 +4,20 @@ public class Subtask extends Task {
 
     private final int epicId;
 
-    public Subtask(String name, String description, Status status, int epicID) {
+    public Subtask(String name, String description, Status status, int epicId) {
         super(name, description);
-        this.epicId = epicID;
+        this.epicId = epicId;
     }
 
     public int getEpicId() {
         return epicId;
+    }
+
+    @Override
+    public void setId(int id) {
+        if (id != epicId) {
+            super.setId(id);
+        }
     }
 
     @Override
