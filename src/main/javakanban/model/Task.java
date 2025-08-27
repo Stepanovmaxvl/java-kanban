@@ -6,10 +6,10 @@ public class Task implements Cloneable {
 
     private String name;
     private String description;
-    private int id;
+    private Integer id;
     private Status status;
 
-    public Task(int id, String name, String description, Status status) {
+    public Task(Integer id, String name, String description, Status status) {
         this.id = id;
         this.name = name;
         this.description = description;

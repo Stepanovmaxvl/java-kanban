@@ -8,7 +8,7 @@ import java.util.*;
 public class InMemoryHistoryManager implements HistoryManager {
 
 
-    private static final int MAX_HISTORY_STORAGE = 10;
+   // private static final int MAX_HISTORY_STORAGE = 10;
     //private final List<Task> historyList = new LinkedList<>();
     private final Map<Integer, Node> history = new HashMap<>();
     private Node first;

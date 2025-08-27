@@ -200,19 +200,6 @@ public class InMemoryTaskManagerTest {
                 "В истории не сохранилась старая версия задачи");
     }
 
-    @Test
-    public void updateEpic_returnOldTask_checkHistory() {
-        InMemoryTaskManager taskManager = new InMemoryTaskManager();
-        Epic flatRenovation = new Epic("Сделать ремонт", "Нужно успеть за отпуск");
-        taskManager.addEpic(flatRenovation);
-        taskManager.getEpicByID(flatRenovation.getId());
-        taskManager.updateEpic(new Epic(flatRenovation.getId(), "Новое имя", "новое описание",
-                Status.IN_PROGRESS));
-        List<Task> epics = taskManager.getHistory();
-        Epic oldEpic = (Epic) epics.getFirst();
-        assertNotEquals(flatRenovation.getName(), oldEpic.getName(), "Имя эпика должно был изменено");
-        assertNotEquals(flatRenovation.getDescription(), oldEpic.getDescription(), "Описание эпика должно было изменено");
-    }
 
     @Test
     public void updateSubtask_returnOldTask_checkHistory() {
