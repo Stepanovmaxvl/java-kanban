@@ -1,7 +1,5 @@
 package main.javakanban.model;
 
-import java.util.Objects;
-
 public class Task implements Cloneable {
 
     private String name;
