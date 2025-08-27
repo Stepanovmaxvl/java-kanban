@@ -1,8 +1,6 @@
 package test.javakanban.model;
 
-import main.javakanban.manager.task.InMemoryTaskManager;
 import main.javakanban.model.Epic;
-import main.javakanban.model.Subtask;
 import org.junit.jupiter.api.Test;
 import main.javakanban.model.Status;
 
