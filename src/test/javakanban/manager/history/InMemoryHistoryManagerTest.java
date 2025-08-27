@@ -21,8 +21,9 @@ class InMemoryHistoryManagerTest {
     public void beforeEach() {
         taskManager = Managers.getDefault();
     }
+
     @Test
-    public void addTasks_getHistory_taskIsAddOnlyOne () {
+    public void addTasks_getHistory_taskIsAddOnlyOne() {
         // Создаем задачу, эпик и подзадачу
         final Task task = new Task(null, "Новая задача", "Описание задачи", Status.NEW);
         final int taskId = taskManager.addTask(task).getId();
@@ -78,5 +79,4 @@ class InMemoryHistoryManagerTest {
         history = taskManager.getHistory();
         assertTrue(history.isEmpty(), "История должна быть пустой.");
     }
-
 }
