@@ -18,8 +18,9 @@ public class SubtaskTest {
     public void setId_doNotSetId_idIsSameWithEpicId() {
         int epicId = 1;
         Subtask subtask = new Subtask("Сабтаск", "Описание сабтаска", Status.NEW, epicId);
-        int originalId = subtask.getId(); // Сохраняем оригинальный ID сабтаска
-        subtask.setId(epicId); // Пытаемся установить ID, совпадающий с ID эпика
+        subtask.setId(2); // Установка ID по умолчанию, если у вас есть такая логика
+        int originalId = subtask.getId(); // Оригинальный ID после вызова
+        subtask.setId(epicId); // Пытаемся установить ID, совпадающий с epicId
         assertEquals(originalId, subtask.getId(), "ID сабтаска должен остаться прежним, если он совпадает с ID эпика");
     }
 }
