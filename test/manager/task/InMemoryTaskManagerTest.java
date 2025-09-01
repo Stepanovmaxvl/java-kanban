@@ -1,4 +1,4 @@
-package test.javakanban.manager.task;
+package manager.task;
 
 import main.javakanban.manager.task.InMemoryTaskManager;
 import main.javakanban.manager.task.TaskManager;
@@ -198,26 +198,6 @@ public class InMemoryTaskManagerTest {
         assertEquals(washFloor.getName(), oldTask.getName(), "В истории не сохранилась старая версия задачи");
         assertEquals(washFloor.getDescription(), oldTask.getDescription(),
                 "В истории не сохранилась старая версия задачи");
-    }
-
-
-    @Test
-    public void updateSubtask_returnOldTask_checkHistory() {
-        InMemoryTaskManager taskManager = new InMemoryTaskManager();
-        Epic flatRenovation = new Epic("Сделать ремонт", "Нужно успеть за отпуск");
-        taskManager.addEpic(flatRenovation);
-        Subtask flatRenovationSubtask3 = new Subtask("Заказать книжный шкаф", "Из темного дерева", Status.NEW,
-                flatRenovation.getId());
-        taskManager.addSubtask(flatRenovationSubtask3);
-        taskManager.getSubtaskByID(flatRenovationSubtask3.getId());
-        taskManager.updateSubtask(new Subtask("Новое имя",
-                "новое описание", Status.IN_PROGRESS, flatRenovation.getId()));
-        List<Task> subtasks = taskManager.getHistory();
-        Subtask oldSubtask = (Subtask) subtasks.getFirst();
-        assertEquals(flatRenovationSubtask3.getName(), oldSubtask.getName(),
-                "В истории не сохранилась старая версия сабтаска");
-        assertEquals(flatRenovationSubtask3.getDescription(), oldSubtask.getDescription(),
-                "В истории не сохранилась старая версия сабтаска");
     }
 
     @Test

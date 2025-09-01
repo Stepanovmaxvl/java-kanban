@@ -1,6 +1,5 @@
 package main.javakanban.manager.history;
 
-import main.javakanban.manager.history.HistoryManager;
 import main.javakanban.model.Task;
 
 import java.util.*;
@@ -8,8 +7,6 @@ import java.util.*;
 public class InMemoryHistoryManager implements HistoryManager {
 
 
-   // private static final int MAX_HISTORY_STORAGE = 10;
-    //private final List<Task> historyList = new LinkedList<>();
     private final Map<Integer, Node> history = new HashMap<>();
     private Node first;
     private Node last;
@@ -19,10 +16,10 @@ public class InMemoryHistoryManager implements HistoryManager {
         if (task == null) {
             return;
         }
-        final int id = task.getId();
-        remove(id);
+
+        remove(task.getId());
         linkLast(task);
-        history.put(id, last);
+        history.put(task.getId(), last);
     }
 
     @Override
@@ -45,6 +42,7 @@ public class InMemoryHistoryManager implements HistoryManager {
             first = newNode;
         } else {
             last.next = newNode;
+            newNode.prev = last;
         }
         last = newNode;
     }
