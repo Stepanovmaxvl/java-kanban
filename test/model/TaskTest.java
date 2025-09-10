@@ -1,4 +1,4 @@
-package test.javakanban.model;
+package model;
 
 import main.javakanban.model.Status;
 import main.javakanban.model.Task;
