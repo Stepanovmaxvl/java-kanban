@@ -46,4 +46,9 @@ public class Epic extends Task {
                 ", status = " + getStatus() +
                 '}';
     }
+
+    @Override
+    public String getType() {
+        return "EPIC";
+    }
 }
