@@ -1,6 +1,6 @@
 package main.javakanban.model;
 
-public class Task implements Cloneable, TaskType {
+public class Task implements Cloneable {
 
     private String name;
     private String description;
@@ -41,11 +41,15 @@ public class Task implements Cloneable, TaskType {
         return description;
     }
 
+    public TaskType getType() {
+        return TaskType.TASK;
+    }
+
     public void setDescription(String description) {
         this.description = description;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
@@ -92,8 +96,4 @@ public class Task implements Cloneable, TaskType {
                 '}';
     }
 
-    @Override
-    public String getType() {
-        return "TASK";
-    }
 }

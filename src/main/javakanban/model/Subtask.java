@@ -32,7 +32,7 @@ public class Subtask extends Task {
     }
 
     @Override
-    public String getType() {
-        return "SUBTASK";
+    public TaskType getType() {
+        return TaskType.SUBTASK;
     }
 }

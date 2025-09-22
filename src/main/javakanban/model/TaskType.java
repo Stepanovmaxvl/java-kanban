@@ -1,5 +1,5 @@
 package main.javakanban.model;
 
-public interface TaskType {
-    String getType();
+public enum TaskType {
+    TASK, EPIC, SUBTASK
 }

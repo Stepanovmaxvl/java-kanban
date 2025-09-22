@@ -12,6 +12,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
+import main.javakanban.converter.CsvConverter;
+
 public class FileBackedTaskManager extends InMemoryTaskManager {
     private final File file;
 
@@ -22,10 +24,10 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public Subtask addSubtask(Subtask subtask) {
-        super.addSubtask(subtask);
+    public Integer addSubtask(Subtask subtask) {
+        Integer newSubtaskId = super.addSubtask(subtask);
         save();
-        return subtask;
+        return newSubtaskId;
     }
 
     @Override
@@ -63,32 +65,41 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         return subtask;
     }
 
-    public void save() {
+    @Override
+    public Integer deleteSubtaskByID(int id) {
+        super.deleteSubtaskByID(id);
+        save();
+        return null;
+    }
+
+    @Override
+    public Integer deleteTaskByID(int id) {
+        super.deleteTaskByID(id);
+        save();
+        return null;
+    }
+
+    @Override
+    public void deleteEpicByID(int id) {
+        super.deleteEpicByID(id);
+        save();
+    }
+
+    private void save() {
         try (FileWriter writer = new FileWriter(file)) {
-            // Записываем заголовки
             writer.write("id,type,name,status,description,epic\n");
             for (Task task : getTasks()) {
-                writer.write(toCsv(task) + "\n");
+                writer.write(CsvConverter.toCsv(task) + "\n");
             }
             for (Epic epic : getEpics()) {
-                writer.write(toCsv(epic) + "\n");
+                writer.write(CsvConverter.toCsv(epic) + "\n");
             }
             for (Subtask subtask : getSubtasks()) {
-                writer.write(toCsv(subtask) + "\n");
+                writer.write(CsvConverter.toCsv(subtask) + "\n");
             }
         } catch (IOException e) {
             throw new ManagerSaveException("Ошибка при сохранении данных", e);
         }
-    }
-
-    private String toCsv(Task task) {
-        return String.format("%d,%s,%s,%s,%s,%s",
-                task.getId(),
-                task.getType(),
-                task.getName(),
-                task.getStatus().name(),
-                task.getDescription(),
-                task instanceof Subtask ? ((Subtask) task).getEpicId() : "");
     }
 
     public void initialize() {
@@ -109,47 +120,18 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             }
 
             for (String line : lines.subList(1, lines.size())) {
-                fromCsv(line);
+                Task task = CsvConverter.fromCsv(line);
+                if (task instanceof Epic) {
+                    addEpic((Epic) task);
+                } else if (task instanceof Subtask) {
+                    addSubtask((Subtask) task);
+                } else {
+                    addTask(task);
+                }
             }
         } catch (IOException e) {
             System.out.println("Ошибка при загрузке данных: " + e.getMessage());
         }
-    }
-
-    private void fromCsv(String line) {
-        String[] parts = line.split(",");
-
-        if (parts.length < 5) {
-            System.out.println("Недостаточно данных в строке: " + line);
-            return;
-        }
-
-        int id = Integer.parseInt(parts[0]);
-        String type = parts[1];
-        String name = parts[2];
-        String status = parts[3];
-        String description = parts[4];
-        Integer epic = parts.length > 5 && !parts[5].isEmpty() ? Integer.parseInt(parts[5]) : null;
-
-        switch (type) {
-            case "TASK":
-                Task task = new Task(id, name, description, Status.valueOf(status));
-                addTask(task);
-                break;
-            case "EPIC":
-                Epic epicObj = new Epic(id, name, description, Status.valueOf(status));
-                addEpic(epicObj);
-                break;
-            case "SUBTASK":
-                if (epic == null) {
-                    System.out.println("Недостаточно данных для подзадачи: " + line);
-                    return;
-                }
-        }
-    }
-
-    public static FileBackedTaskManager loadFromFile(File file) {
-        return new FileBackedTaskManager(file);
     }
 
     public class ManagerSaveException extends RuntimeException {
@@ -159,7 +141,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     public static void main(String[] args) {
-
         File file = new File("tasks.csv");
 
         FileBackedTaskManager manager = new FileBackedTaskManager(file);
@@ -167,10 +148,10 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         Task task1 = new Task(null, "Первое задание", "Описание первого задания", Status.NEW);
         manager.addTask(task1);
 
-        Epic epic1 = new Epic(0, "Первый эпик", "Описание первого эпика", Status.NEW);
+        Epic epic1 = new Epic(0, "Первый эпик", "Описание первого эпика", Status.NEW); // Передаем null
         manager.addEpic(epic1);
 
-        Subtask subtask1 = new Subtask("Первая подзадача", "Описание первой подзадачи", Status.NEW, epic1.getId());
+        Subtask subtask1 = new Subtask("Первая подзадача", "Описание первой подзадачи", Status.NEW, epic1.getId()); // Передаем null
         manager.addSubtask(subtask1);
 
         System.out.println("Список задач:");
