@@ -25,7 +25,7 @@ public class InMemoryTaskManager implements TaskManager {
         return id++;
     }
 
-    private void updateIdCounter(Integer providedId) {
+    protected void updateIdCounter(Integer providedId) {
         if (providedId != null && providedId >= id) {
             id = providedId + 1;
         }
@@ -75,7 +75,6 @@ public class InMemoryTaskManager implements TaskManager {
         updateEpicStatus(epicId);
         return subtask.getId();
     }
-
 
     //обновляем тип "Задача"
     @Override
@@ -220,8 +219,7 @@ public class InMemoryTaskManager implements TaskManager {
         return historyManager.getHistory();
     }
 
-    //метод для контроля статуса эпика
-    private void updateEpicStatus(int epicId) {
+    protected void updateEpicStatus(int epicId) {
         ArrayList<Integer> subtaskIdArray = epics.get(epicId).getSubtaskId();
         ArrayList<Subtask> subtasksArray = new ArrayList<>();
         for (int id : subtaskIdArray) {
@@ -254,5 +252,17 @@ public class InMemoryTaskManager implements TaskManager {
                 epics.get(epicId).setStatus(Status.IN_PROGRESS);
             }
         }
+    }
+
+    protected Map<Integer, Task> getTasksMap() {
+        return tasks;
+    }
+
+    protected Map<Integer, Epic> getEpicsMap() {
+        return epics;
+    }
+
+    protected Map<Integer, Subtask> getSubtasksMap() {
+        return subtasks;
     }
 }

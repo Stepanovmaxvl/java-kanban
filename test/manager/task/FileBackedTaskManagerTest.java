@@ -29,7 +29,7 @@ public class FileBackedTaskManagerTest {
     @Test
     public void loadFromFile_getTasks_emptyFile() {
         assertDoesNotThrow(() -> {
-            manager.initialize();
+            FileBackedTaskManager newManager = new FileBackedTaskManager(tempFile);
         });
         assertTrue(manager.getTasks().isEmpty());
         assertTrue(manager.getEpics().isEmpty());
@@ -132,6 +132,64 @@ public class FileBackedTaskManagerTest {
         assertNotNull(manager.getTasks().toArray());
         assertEquals("Первое задание", manager.getTasks().get(0).getName());
         assertEquals("Второе задание", manager.getTasks().get(1).getName());
+    }
+
+    @Test
+    public void reloadThenAddSecondTask_shouldHaveTwoTasks_andSecondMatches() {
+        Task first = new Task(null, "Первое задание", "Описание первого задания", Status.NEW);
+        manager.addTask(first);
+
+        FileBackedTaskManager reloaded = new FileBackedTaskManager(tempFile);
+
+        Task second = new Task(null, "Второе задание", "Описание второго задания", Status.IN_PROGRESS);
+        reloaded.addTask(second);
+
+        assertEquals(2, reloaded.getTasks().size(), "После дозагрузки и добавления второй задачи должно быть 2 задачи");
+
+        Task loadedSecond = reloaded.getTasks().stream()
+                .filter(t -> t.getName().equals("Второе задание"))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(loadedSecond, "Вторая задача должна быть найдена");
+        assertEquals("Второе задание", loadedSecond.getName());
+        assertEquals("Описание второго задания", loadedSecond.getDescription());
+        assertEquals(Status.IN_PROGRESS, loadedSecond.getStatus());
+    }
+
+    @Test
+    public void epicTaskSubtask_persistAndReload_allFieldsAndLinksPreserved() {
+        Epic epic = manager.addEpic(new Epic(0, "Эпик 1", "Описание эпика", Status.NEW));
+        Task task = manager.addTask(new Task(null, "Задача 1", "Описание задачи", Status.NEW));
+        Integer subId = manager.addSubtask(new Subtask("Сабтаск 1", "Описание сабтаска", Status.NEW, epic.getId()));
+
+        FileBackedTaskManager reloaded = new FileBackedTaskManager(tempFile);
+
+        assertEquals(1, reloaded.getEpics().size());
+        assertEquals(1, reloaded.getTasks().size());
+        assertEquals(1, reloaded.getSubtasks().size());
+
+        Epic loadedEpic = reloaded.getEpicByID(epic.getId());
+        assertNotNull(loadedEpic);
+        assertEquals(epic.getId(), loadedEpic.getId());
+        assertEquals(epic.getName(), loadedEpic.getName());
+        assertEquals(epic.getDescription(), loadedEpic.getDescription());
+        assertEquals(epic.getStatus(), loadedEpic.getStatus());
+
+        Task loadedTask = reloaded.getTaskByID(task.getId());
+        assertNotNull(loadedTask);
+        assertEquals(task.getId(), loadedTask.getId());
+        assertEquals(task.getName(), loadedTask.getName());
+        assertEquals(task.getDescription(), loadedTask.getDescription());
+        assertEquals(task.getStatus(), loadedTask.getStatus());
+
+        Subtask loadedSubtask = reloaded.getSubtaskByID(subId);
+        assertNotNull(loadedSubtask);
+        assertEquals(subId, loadedSubtask.getId());
+        assertEquals("Сабтаск 1", loadedSubtask.getName());
+        assertEquals("Описание сабтаска", loadedSubtask.getDescription());
+        assertEquals(Status.NEW, loadedSubtask.getStatus());
+        assertEquals(epic.getId(), loadedSubtask.getEpicId());
+        assertTrue(loadedEpic.getSubtaskId().contains(loadedSubtask.getId()), "Эпик должен содержать ID сабтаска");
     }
 
     @AfterEach

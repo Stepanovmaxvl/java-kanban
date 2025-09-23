@@ -1,5 +1,6 @@
 package main.javakanban.manager.task;
 
+import main.javakanban.exception.ManagerSaveException;
 import main.javakanban.model.Epic;
 import main.javakanban.model.Status;
 import main.javakanban.model.Subtask;
@@ -13,6 +14,8 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import main.javakanban.converter.CsvConverter;
+
+import static main.javakanban.model.TaskType.*;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
     private final File file;
@@ -102,8 +105,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
 
-    public void initialize() {
-        loadFromFile();
+    public static FileBackedTaskManager loadFromFile(File file) {
+        return new FileBackedTaskManager(file);
     }
 
     private void loadFromFile() {
@@ -119,24 +122,58 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 return;
             }
 
+            int maxId = 0;
+
             for (String line : lines.subList(1, lines.size())) {
-                Task task = CsvConverter.fromCsv(line);
-                if (task instanceof Epic) {
-                    addEpic((Epic) task);
-                } else if (task instanceof Subtask) {
-                    addSubtask((Subtask) task);
-                } else {
-                    addTask(task);
+                Task parsed = CsvConverter.fromCsv(line);
+                switch (parsed.getType()) {
+                    case TASK: {
+                        Task task = (Task) parsed;
+                        getTasksMap().put(task.getId(), task);
+                        if (task.getId() != null && task.getId() > maxId) {
+                            maxId = task.getId();
+                        }
+                        break;
+                    }
+                    case EPIC: {
+                        Epic epic = (Epic) parsed;
+                        getEpicsMap().put(epic.getId(), epic);
+                        if (epic.getId() != null && epic.getId() > maxId) {
+                            maxId = epic.getId();
+                        }
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+
+            for (String line : lines.subList(1, lines.size())) {
+                Task parsed = CsvConverter.fromCsv(line);
+                if (parsed.getType() == SUBTASK) {
+                    Subtask subtask = (Subtask) parsed;
+                    getSubtasksMap().put(subtask.getId(), subtask);
+                    Epic epic = getEpicsMap().get(subtask.getEpicId());
+                    if (epic != null) {
+                        epic.addSubtask(subtask.getId());
+                    } else {
+                        System.out.println("Эпик с id=" + subtask.getEpicId() + " не найден для подзадачи id=" + subtask.getId());
+                    }
+                    if (subtask.getId() != null && subtask.getId() > maxId) {
+                        maxId = subtask.getId();
+                    }
+                }
+            }
+
+            updateIdCounter(maxId);
+
+            for (Epic epic : getEpics()) {
+                if (epic.getId() != null) {
+                    updateEpicStatus(epic.getId());
                 }
             }
         } catch (IOException e) {
             System.out.println("Ошибка при загрузке данных: " + e.getMessage());
-        }
-    }
-
-    public class ManagerSaveException extends RuntimeException {
-        public ManagerSaveException(String message, Throwable cause) {
-            super(message, cause);
         }
     }
 
@@ -148,7 +185,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         Task task1 = new Task(null, "Первое задание", "Описание первого задания", Status.NEW);
         manager.addTask(task1);
 
-        Epic epic1 = new Epic(0, "Первый эпик", "Описание первого эпика", Status.NEW); // Передаем null
+        Epic epic1 = new Epic(null, "Первый эпик", "Описание первого эпика", Status.NEW);
         manager.addEpic(epic1);
 
         Subtask subtask1 = new Subtask("Первая подзадача", "Описание первой подзадачи", Status.NEW, epic1.getId()); // Передаем null
