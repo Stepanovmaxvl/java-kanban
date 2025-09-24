@@ -41,11 +41,15 @@ public class Task implements Cloneable {
         return description;
     }
 
+    public TaskType getType() {
+        return TaskType.TASK;
+    }
+
     public void setDescription(String description) {
         this.description = description;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
@@ -91,4 +95,5 @@ public class Task implements Cloneable {
                 ", status=" + status +
                 '}';
     }
+
 }

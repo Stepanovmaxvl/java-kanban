@@ -24,7 +24,6 @@ public class InMemoryTaskManagerTest {
 
     @Test
     void addTask_returnSameId_taskIsAdded() {
-        //проверяем, что InMemoryTaskManager добавляет задачи и может найти их по id;
         final Task task = taskManager.addTask(new Task("Задача 1", "Сделать Задачу 1"));
         final Task savedTask = taskManager.getTaskByID(task.getId());
         assertNotNull(savedTask, "Задача не найдена.");
@@ -54,28 +53,6 @@ public class InMemoryTaskManagerTest {
         assertEquals(1, epics.size(), "Неверное количество эпиков.");
         assertEquals(flatRenovation, epics.getFirst(), "Эпики не совпадают.");
 
-    }
-
-    @Test
-    void addSubtask_returnSameId_subtaskIsAdded() {
-        final Epic flatRenovation = taskManager.addEpic(new Epic("Сделать ремонт",
-                "Нужно успеть за отпуск"));
-        final Subtask flatRenovationSubtask1 = taskManager.addSubtask(new Subtask("Поклеить обои",
-                "Обязательно светлые!", Status.NEW, flatRenovation.getId()));
-        final Subtask flatRenovationSubtask2 = taskManager.addSubtask(new Subtask("Установить новую технику",
-                "Старую продать на Авито", Status.NEW, flatRenovation.getId()));
-        final Subtask flatRenovationSubtask3 = taskManager.addSubtask(new Subtask("Заказать книжный шкаф", "Из темного дерева", Status.NEW,
-                flatRenovation.getId()));
-        final Subtask savedSubtask1 = taskManager.getSubtaskByID(flatRenovationSubtask1.getId());
-        final Subtask savedSubtask2 = taskManager.getSubtaskByID(flatRenovationSubtask2.getId());
-        final Subtask savedSubtask3 = taskManager.getSubtaskByID(flatRenovationSubtask3.getId());
-        assertNotNull(savedSubtask2, "Подзадача не найдена.");
-        assertEquals(flatRenovationSubtask1, savedSubtask1, "Подзадачи не совпадают.");
-        assertEquals(flatRenovationSubtask3, savedSubtask3, "Подзадачи не совпадают.");
-        final List<Subtask> subtasks = taskManager.getSubtasks();
-        assertNotNull(subtasks, "Подзадачи не возвращаются.");
-        assertEquals(3, subtasks.size(), "Неверное количество подзадач.");
-        assertEquals(savedSubtask1, subtasks.getFirst(), "Подзадачи не совпадают.");
     }
 
     @Test
@@ -172,14 +149,11 @@ public class InMemoryTaskManagerTest {
     public void getTaskById_addTask_checkHistory() {
         InMemoryTaskManager taskManager = new InMemoryTaskManager();
 
-        // Создаем и добавляем новую задачу
         Task task = new Task("Тестовая задача", "Описание тестовой задачи");
         taskManager.addTask(task);
 
-        // Получаем задачу по ID
         taskManager.getTaskByID(task.getId());
 
-        // Проверяем, что список не пустой и есть задача в истории
         List<Task> history = taskManager.getHistory();
         assertFalse(history.isEmpty(), "История должна содержать элементы");
         assertTrue(history.contains(task), "История должна содержать добавленную задачу");

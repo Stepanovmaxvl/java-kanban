@@ -18,7 +18,7 @@ public interface TaskManager {
     Epic addEpic(Epic epic);
 
     //создаем тип "Подзадача"
-    Subtask addSubtask(Subtask subtask);
+    Integer  addSubtask(Subtask subtask);
 
     //обновляем тип "Задача"
     Task updateTask(Task task);
