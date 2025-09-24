@@ -1,6 +1,7 @@
 package manager.task;
 
 import main.javakanban.manager.task.FileBackedTaskManager;
+import main.javakanban.exception.ManagerSaveException;
 import main.javakanban.model.Epic;
 import main.javakanban.model.Status;
 import main.javakanban.model.Subtask;
@@ -11,6 +12,8 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -197,5 +200,20 @@ public class FileBackedTaskManagerTest {
         if (tempFile.exists()) {
             tempFile.delete();
         }
+    }
+
+    @Test
+    public void constructingWithNonExistingFile_doesNotThrow() {
+        File nonExisting = new File("surely-not-existing-__123456.csv");
+        assertDoesNotThrow(() -> new FileBackedTaskManager(nonExisting));
+    }
+
+    @Test
+    public void usingDirectoryAsTarget_throwsOnSave() throws IOException {
+        Path tempDir = Files.createTempDirectory("fb-dir");
+        FileBackedTaskManager mgr = new FileBackedTaskManager(tempDir.toFile());
+        Task willFailOnSave = new Task(null, "A", "B", Status.NEW);
+        assertThrows(ManagerSaveException.class, () -> mgr.addTask(willFailOnSave),
+                "Запись в директорию должна приводить к ManagerSaveException");
     }
 }

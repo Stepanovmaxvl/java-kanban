@@ -1,11 +1,16 @@
 package main.javakanban.model;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 public class Task implements Cloneable {
 
     private String name;
     private String description;
     private Integer id;
     private Status status;
+    private Duration duration;
+    private LocalDateTime startTime;
 
     public Task(Integer id, String name, String description, Status status) {
         this.id = id;
@@ -63,6 +68,30 @@ public class Task implements Cloneable {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public Duration getDuration() {
+        return duration;
+    }
+
+    public void setDuration(Duration duration) {
+        this.duration = duration;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        if (startTime != null && duration != null) {
+            return startTime.plus(duration);
+        } else {
+            return null;
+        }
     }
 
     @Override

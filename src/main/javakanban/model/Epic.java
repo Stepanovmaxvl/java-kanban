@@ -1,9 +1,10 @@
 package main.javakanban.model;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 public class Epic extends Task {
-
+    private LocalDateTime endTime;
     private ArrayList<Integer> subtasksId = new ArrayList<>();
 
     public Epic(String name, String description) {
@@ -12,6 +13,15 @@ public class Epic extends Task {
 
     public Epic(Integer  id, String name, String description, Status status) {
         super(id, name, description, status);
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
+    @Override
+    public LocalDateTime getEndTime() {
+        return endTime;
     }
 
     public void addSubtask(int subtask) {
