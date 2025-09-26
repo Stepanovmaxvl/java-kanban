@@ -8,6 +8,7 @@ import main.javakanban.model.Status;
 import main.javakanban.model.Subtask;
 import main.javakanban.model.Task;
 import main.javakanban.model.TaskType;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -53,8 +54,9 @@ public class InMemoryTaskManager implements TaskManager {
             updateIdCounter(task.getId());
         }
 
-        validateAndRegisterTask(task);
+        validateTaskForUpdate(task);
         tasks.put(task.getId(), task);
+        registerTaskWithoutValidation(task);
         return task;
     }
 
@@ -86,10 +88,11 @@ public class InMemoryTaskManager implements TaskManager {
             updateIdCounter(subtask.getId());
         }
 
-        validateAndRegisterTask(subtask);
+        validateTaskForUpdate(subtask);
         subtasks.put(subtask.getId(), subtask);
         epic.addSubtask(subtask.getId());
         updateEpicStatus(epicId);
+        registerTaskWithoutValidation(subtask);
         return subtask.getId();
     }
 
@@ -102,12 +105,10 @@ public class InMemoryTaskManager implements TaskManager {
         }
         Task old = tasks.get(taskId);
 
-        if (old.getStartTime() != null && old.getEndTime() != null) {
-            removeIntervalFromSlots(old.getStartTime(), old.getEndTime());
-        }
-        removeFromPrioritized(old);
+        validateTaskForUpdate(task);
+        removeTaskFromAllStructures(old);
+        registerTaskWithoutValidation(task);
 
-        validateAndRegisterTask(task);
         tasks.replace(taskId, task);
         return task;
     }
@@ -135,12 +136,10 @@ public class InMemoryTaskManager implements TaskManager {
         }
         Subtask old = subtasks.get(subtask.getId());
 
-        if (old.getStartTime() != null && old.getEndTime() != null) {
-            removeIntervalFromSlots(old.getStartTime(), old.getEndTime());
-        }
-        removeFromPrioritized(old);
+        validateTaskForUpdate(subtask);
+        removeTaskFromAllStructures(old);
+        registerTaskWithoutValidation(subtask);
 
-        validateAndRegisterTask(subtask);
         subtasks.put(subtask.getId(), subtask);
         updateEpicStatus(subtask.getEpicId());
         return subtask;
@@ -203,10 +202,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void deleteTasks() {
         for (Task t : tasks.values()) {
-            if (t.getStartTime() != null && t.getEndTime() != null) {
-                removeIntervalFromSlots(t.getStartTime(), t.getEndTime());
-            }
-            removeFromPrioritized(t);
+            removeTaskFromAllStructures(t);
         }
         tasks.clear();
     }
@@ -223,10 +219,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void deleteSubtasks() {
         for (Subtask s : subtasks.values()) {
-            if (s.getStartTime() != null && s.getEndTime() != null) {
-                removeIntervalFromSlots(s.getStartTime(), s.getEndTime());
-            }
-            removeFromPrioritized(s);
+            removeTaskFromAllStructures(s);
         }
         subtasks.clear();
         epics.values().forEach(epic -> {
@@ -238,10 +231,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public Object deleteTaskByID(int id) {
         Task removed = tasks.remove(id);
-        if (removed != null && removed.getStartTime() != null && removed.getEndTime() != null) {
-            removeIntervalFromSlots(removed.getStartTime(), removed.getEndTime());
-        }
-        removeFromPrioritized(removed);
+        removeTaskFromAllStructures(removed);
         return null;
     }
 
@@ -259,10 +249,7 @@ public class InMemoryTaskManager implements TaskManager {
         int epicId = subtasks.get(id).getEpicId();
         epics.get(epicId).removeEpicSubtask(id);
         Subtask removed = subtasks.remove(id);
-        if (removed != null && removed.getStartTime() != null && removed.getEndTime() != null) {
-            removeIntervalFromSlots(removed.getStartTime(), removed.getEndTime());
-        }
-        removeFromPrioritized(removed);
+        removeTaskFromAllStructures(removed);
         updateEpicStatus(epicId);
         return null;
     }
@@ -311,20 +298,53 @@ public class InMemoryTaskManager implements TaskManager {
         return prioritized;
     }
 
-    private void validateAndRegisterTask(Task task) {
+    private void validateTaskForUpdate(Task task) {
         if (task == null) return;
+        if (task.getType() == TaskType.EPIC) return;
 
         if (hasTimeIntersection(task)) {
             throw new TimeIntervalConflictException("Задача пересекается по времени с существующими задачами");
         }
+    }
 
-        if (task.getStartTime() != null && task.getEndTime() != null) {
-            addIntervalToSlots(task.getStartTime(), task.getEndTime());
-        }
+    private void registerTaskWithoutValidation(Task task) {
+        if (task == null) return;
+        if (task.getType() == TaskType.EPIC) return;
 
-        if (task.getType() != TaskType.EPIC) {
-            prioritized.add(task);
-        }
+        handleTaskWithTime(task);
+    }
+
+    private void handleTaskWithTime(Task task) {
+        addToPrioritized(task);
+        addToTimeSlots(task);
+    }
+
+    private void addToPrioritized(Task task) {
+        if (task == null) return;
+        if (task.getType() == TaskType.EPIC) return;
+        prioritized.add(task);
+    }
+
+    private void addToTimeSlots(Task task) {
+        if (task == null) return;
+        if (task.getType() == TaskType.EPIC) return;
+        if (task.getStartTime() == null || task.getEndTime() == null) return;
+
+        addIntervalToSlots(task.getStartTime(), task.getEndTime());
+    }
+
+    private void removeFromTimeSlots(Task task) {
+        if (task == null) return;
+        if (task.getStartTime() == null || task.getEndTime() == null) return;
+
+        removeIntervalFromSlots(task.getStartTime(), task.getEndTime());
+    }
+
+    private void removeTaskFromAllStructures(Task task) {
+        if (task == null) return;
+
+        removeFromTimeSlots(task);
+        removeFromPrioritized(task);
     }
 
     protected void removeFromPrioritized(Task task) {
@@ -369,7 +389,7 @@ public class InMemoryTaskManager implements TaskManager {
         }
         LocalDateTime current = start;
         while (current.isBefore(end)) {
-            slots.put(current, false);
+            slots.remove(current);
             current = current.plusMinutes(15);
         }
     }

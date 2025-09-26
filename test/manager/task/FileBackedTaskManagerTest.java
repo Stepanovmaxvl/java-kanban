@@ -1,4 +1,4 @@
-package manager.task;
+package test.manager.task;
 
 import main.javakanban.manager.task.FileBackedTaskManager;
 import main.javakanban.exception.ManagerSaveException;

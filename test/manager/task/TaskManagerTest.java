@@ -1,5 +1,6 @@
-package manager.task;
+package test.manager.task;
 
+import main.javakanban.exception.TimeIntervalConflictException;
 import main.javakanban.manager.task.TaskManager;
 import main.javakanban.model.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -65,10 +66,49 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         Task t2 = new Task(null, "T2", "", Status.NEW);
         t2.setStartTime(LocalDateTime.of(2025, 1, 1, 10, 30));
         t2.setDuration(Duration.ofMinutes(30));
-        
-        assertThrows(IllegalArgumentException.class, () -> manager.addTask(t2),
+
+        assertThrows(TimeIntervalConflictException.class, () -> manager.addTask(t2),
                 "Пересекающиеся задачи должны вызывать исключение");
     }
+
+    @Test
+    public void updateTask_timeConflictPreservesOldTask_oldTaskRemainsUnchanged() {
+        Task task1 = new Task(null, "Задача 1", "Описание задачи 1", Status.NEW);
+        task1.setDuration(Duration.ofMinutes(60));
+        task1.setStartTime(LocalDateTime.of(2024, 1, 1, 10, 0)); // 10:00-11:00
+
+        Task task2 = new Task(null, "Задача 2", "Описание задачи 2", Status.NEW);
+        task2.setDuration(Duration.ofMinutes(60));
+        task2.setStartTime(LocalDateTime.of(2024, 1, 1, 12, 0)); // 12:00-13:00
+
+        manager.addTask(task1);
+        manager.addTask(task2);
+
+        LocalDateTime originalStartTime = task1.getStartTime();
+        String originalName = task1.getName();
+        Status originalStatus = task1.getStatus();
+
+        Task updatedTask1 = new Task(task1.getId(), "Обновленная задача 1", "Новое описание", Status.IN_PROGRESS);
+        updatedTask1.setDuration(Duration.ofMinutes(60));
+        updatedTask1.setStartTime(LocalDateTime.of(2024, 1, 1, 12, 30));
+
+        assertThrows(TimeIntervalConflictException.class, () -> manager.updateTask(updatedTask1),
+                "Ожидалось исключение TimeIntervalConflictException");
+
+        Task taskFromMap = manager.getTaskByID(task1.getId());
+        assertNotNull(taskFromMap, "Задача должна остаться в мапе");
+        assertEquals(originalStartTime, taskFromMap.getStartTime(), "Время начала должно остаться прежним");
+        assertEquals(originalName, taskFromMap.getName(), "Название должно остаться прежним");
+        assertEquals(originalStatus, taskFromMap.getStatus(), "Статус должен остаться прежним");
+
+        assertEquals(2, manager.getPrioritizedTasks().size(),
+                "Количество приоритизированных задач должно остаться прежним");
+
+        Task conflictingTask = new Task(null, "Конфликтующая задача", "Описание", Status.NEW);
+        conflictingTask.setDuration(Duration.ofMinutes(30));
+        conflictingTask.setStartTime(LocalDateTime.of(2024, 1, 1, 10, 30)); // Пересекается с task1
+
+        assertThrows(TimeIntervalConflictException.class, () -> manager.addTask(conflictingTask),
+                "Слоты должны быть заняты под старую задачу");
+    }
 }
-
-
