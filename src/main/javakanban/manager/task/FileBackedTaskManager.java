@@ -1,10 +1,7 @@
 package main.javakanban.manager.task;
 
 import main.javakanban.exception.ManagerSaveException;
-import main.javakanban.model.Epic;
-import main.javakanban.model.Status;
-import main.javakanban.model.Subtask;
-import main.javakanban.model.Task;
+import main.javakanban.model.*;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -132,14 +129,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                     case TASK: {
                         Task task = (Task) parsed;
                         getTasksMap().put(task.getId(), task);
-                        registerInPrioritized(task);
-                        if (task.getStartTime() != null && task.getEndTime() != null) {
-                            if (!isTimeIntervalBusy(task.getStartTime(), task.getEndTime())) {
-                                bookTimeInterval(task.getStartTime(), task.getEndTime());
-                            } else {
-                                System.out.println("Пропускаем задачу " + task.getId() + " - временной интервал уже занят");
-                            }
-                        }
+                        registerTaskFromFile(task);
                         if (task.getId() != null && task.getId() > maxId) {
                             maxId = task.getId();
                         }
@@ -163,16 +153,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 if (parsed.getType() == SUBTASK) {
                     Subtask subtask = (Subtask) parsed;
                     getSubtasksMap().put(subtask.getId(), subtask);
-                    registerInPrioritized(subtask);
-                    // Бронирование временного интервала при загрузке
-                    if (subtask.getStartTime() != null && subtask.getEndTime() != null) {
-                        // Проверяем, не занят ли уже этот интервал
-                        if (!isTimeIntervalBusy(subtask.getStartTime(), subtask.getEndTime())) {
-                            bookTimeInterval(subtask.getStartTime(), subtask.getEndTime());
-                        } else {
-                            System.out.println("Пропускаем подзадачу " + subtask.getId() + " - временной интервал уже занят");
-                        }
-                    }
+                    registerTaskFromFile(subtask);
                     Epic epic = getEpicsMap().get(subtask.getEpicId());
                     if (epic != null) {
                         epic.addSubtask(subtask.getId());
@@ -194,6 +175,18 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             }
         } catch (IOException e) {
             System.out.println("Ошибка при загрузке данных: " + e.getMessage());
+        }
+    }
+
+    private void registerTaskFromFile(Task task) {
+        if (task == null) return;
+
+        if (task.getType() != TaskType.EPIC) {
+            getPrioritized().add(task);
+        }
+
+        if (task.getStartTime() != null && task.getEndTime() != null) {
+            addIntervalToSlots(task.getStartTime(), task.getEndTime());
         }
     }
 

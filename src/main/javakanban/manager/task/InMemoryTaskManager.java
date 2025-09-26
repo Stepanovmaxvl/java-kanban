@@ -1,14 +1,14 @@
 package main.javakanban.manager.task;
 
+import main.javakanban.exception.TimeIntervalConflictException;
 import main.javakanban.manager.history.HistoryManager;
 import main.javakanban.manager.history.InMemoryHistoryManager;
 import main.javakanban.model.Epic;
 import main.javakanban.model.Status;
 import main.javakanban.model.Subtask;
 import main.javakanban.model.Task;
-
+import main.javakanban.model.TaskType;
 import java.time.LocalDateTime;
-import java.time.Month;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -42,12 +42,6 @@ public class InMemoryTaskManager implements TaskManager {
 
     public InMemoryTaskManager() {
         slots = new HashMap<>();
-        LocalDateTime current = LocalDateTime.of(2024, Month.MAY, 1, 0, 0);
-        final LocalDateTime endOfYear = current.plusYears(2); // Cover 2024 and 2025
-        while (current.isBefore(endOfYear)) {
-            slots.put(current, false);
-            current = current.plusMinutes(15);
-        }
     }
 
     //создаем тип "Задача"
@@ -59,19 +53,8 @@ public class InMemoryTaskManager implements TaskManager {
             updateIdCounter(task.getId());
         }
 
-        // Проверка пересечения временных интервалов
-        if (task.getStartTime() != null && task.getEndTime() != null &&
-                isTimeIntervalBusy(task.getStartTime(), task.getEndTime())) {
-            throw new IllegalArgumentException("Задача пересекается по времени с существующими задачами");
-        }
-
-        // Бронирование временного интервала
-        if (task.getStartTime() != null && task.getEndTime() != null) {
-            bookTimeInterval(task.getStartTime(), task.getEndTime());
-        }
-
+        validateAndRegisterTask(task);
         tasks.put(task.getId(), task);
-        registerInPrioritized(task);
         return task;
     }
 
@@ -103,19 +86,10 @@ public class InMemoryTaskManager implements TaskManager {
             updateIdCounter(subtask.getId());
         }
 
-        if (subtask.getStartTime() != null && subtask.getEndTime() != null &&
-                isTimeIntervalBusy(subtask.getStartTime(), subtask.getEndTime())) {
-            throw new IllegalArgumentException("Подзадача пересекается по времени с существующими задачами");
-        }
-
-        if (subtask.getStartTime() != null && subtask.getEndTime() != null) {
-            bookTimeInterval(subtask.getStartTime(), subtask.getEndTime());
-        }
-
+        validateAndRegisterTask(subtask);
         subtasks.put(subtask.getId(), subtask);
         epic.addSubtask(subtask.getId());
         updateEpicStatus(epicId);
-        registerInPrioritized(subtask);
         return subtask.getId();
     }
 
@@ -127,9 +101,14 @@ public class InMemoryTaskManager implements TaskManager {
             return null;
         }
         Task old = tasks.get(taskId);
+
+        if (old.getStartTime() != null && old.getEndTime() != null) {
+            removeIntervalFromSlots(old.getStartTime(), old.getEndTime());
+        }
         removeFromPrioritized(old);
+
+        validateAndRegisterTask(task);
         tasks.replace(taskId, task);
-        registerInPrioritized(task);
         return task;
     }
 
@@ -155,10 +134,15 @@ public class InMemoryTaskManager implements TaskManager {
             return null;
         }
         Subtask old = subtasks.get(subtask.getId());
+
+        if (old.getStartTime() != null && old.getEndTime() != null) {
+            removeIntervalFromSlots(old.getStartTime(), old.getEndTime());
+        }
         removeFromPrioritized(old);
+
+        validateAndRegisterTask(subtask);
         subtasks.put(subtask.getId(), subtask);
         updateEpicStatus(subtask.getEpicId());
-        registerInPrioritized(subtask);
         return subtask;
     }
 
@@ -220,7 +204,7 @@ public class InMemoryTaskManager implements TaskManager {
     public void deleteTasks() {
         for (Task t : tasks.values()) {
             if (t.getStartTime() != null && t.getEndTime() != null) {
-                freeTimeInterval(t.getStartTime(), t.getEndTime());
+                removeIntervalFromSlots(t.getStartTime(), t.getEndTime());
             }
             removeFromPrioritized(t);
         }
@@ -240,7 +224,7 @@ public class InMemoryTaskManager implements TaskManager {
     public void deleteSubtasks() {
         for (Subtask s : subtasks.values()) {
             if (s.getStartTime() != null && s.getEndTime() != null) {
-                freeTimeInterval(s.getStartTime(), s.getEndTime());
+                removeIntervalFromSlots(s.getStartTime(), s.getEndTime());
             }
             removeFromPrioritized(s);
         }
@@ -255,7 +239,7 @@ public class InMemoryTaskManager implements TaskManager {
     public Object deleteTaskByID(int id) {
         Task removed = tasks.remove(id);
         if (removed != null && removed.getStartTime() != null && removed.getEndTime() != null) {
-            freeTimeInterval(removed.getStartTime(), removed.getEndTime());
+            removeIntervalFromSlots(removed.getStartTime(), removed.getEndTime());
         }
         removeFromPrioritized(removed);
         return null;
@@ -276,7 +260,7 @@ public class InMemoryTaskManager implements TaskManager {
         epics.get(epicId).removeEpicSubtask(id);
         Subtask removed = subtasks.remove(id);
         if (removed != null && removed.getStartTime() != null && removed.getEndTime() != null) {
-            freeTimeInterval(removed.getStartTime(), removed.getEndTime());
+            removeIntervalFromSlots(removed.getStartTime(), removed.getEndTime());
         }
         removeFromPrioritized(removed);
         updateEpicStatus(epicId);
@@ -323,28 +307,37 @@ public class InMemoryTaskManager implements TaskManager {
         return new ArrayList<>(prioritized);
     }
 
-    protected void registerInPrioritized(Task task) {
+    protected TreeSet<Task> getPrioritized() {
+        return prioritized;
+    }
+
+    private void validateAndRegisterTask(Task task) {
         if (task == null) return;
-        if (task instanceof Epic) return;
-        prioritized.add(task);
+
+        if (hasTimeIntersection(task)) {
+            throw new TimeIntervalConflictException("Задача пересекается по времени с существующими задачами");
+        }
+
+        if (task.getStartTime() != null && task.getEndTime() != null) {
+            addIntervalToSlots(task.getStartTime(), task.getEndTime());
+        }
+
+        if (task.getType() != TaskType.EPIC) {
+            prioritized.add(task);
+        }
     }
 
     protected void removeFromPrioritized(Task task) {
         if (task == null) return;
-        if (task instanceof Epic) return;
+        if (task.getType() == TaskType.EPIC) return;
         prioritized.remove(task);
     }
 
-    private boolean isTimeIntersection(Task newTask, List<Task> existedTasks) {
-        if (newTask.getStartTime() == null || newTask.getEndTime() == null) {
+    private boolean hasTimeIntersection(Task task) {
+        if (task.getStartTime() == null || task.getEndTime() == null) {
             return false;
         }
-        return existedTasks.stream().anyMatch(existedTask -> isTimeIntersection(newTask, existedTask));
-    }
-
-    private boolean isTimeIntersection(Task newTask, Task existedTask) {
-        return newTask.getStartTime().isBefore(existedTask.getEndTime()) &&
-                newTask.getEndTime().isAfter(existedTask.getStartTime());
+        return isTimeIntervalBusy(task.getStartTime(), task.getEndTime());
     }
 
     protected boolean isTimeIntervalBusy(LocalDateTime start, LocalDateTime end) {
@@ -362,7 +355,7 @@ public class InMemoryTaskManager implements TaskManager {
         return false;
     }
 
-    protected void bookTimeInterval(LocalDateTime start, LocalDateTime end) {
+    public void addIntervalToSlots(LocalDateTime start, LocalDateTime end) {
         LocalDateTime current = start;
         while (current.isBefore(end)) {
             slots.put(current, true);
@@ -370,7 +363,7 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
-    private void freeTimeInterval(LocalDateTime start, LocalDateTime end) {
+    private void removeIntervalFromSlots(LocalDateTime start, LocalDateTime end) {
         if (start == null || end == null) {
             return;
         }
