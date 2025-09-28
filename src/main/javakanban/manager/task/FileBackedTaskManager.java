@@ -1,16 +1,15 @@
 package main.javakanban.manager.task;
 
 import main.javakanban.exception.ManagerSaveException;
-import main.javakanban.model.Epic;
-import main.javakanban.model.Status;
-import main.javakanban.model.Subtask;
-import main.javakanban.model.Task;
+import main.javakanban.model.*;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import main.javakanban.converter.CsvConverter;
@@ -90,7 +89,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     private void save() {
         try (FileWriter writer = new FileWriter(file)) {
-            writer.write("id,type,name,status,description,epic\n");
+            writer.write("id,type,name,status,description,duration,startTime,epic\n");
             for (Task task : getTasks()) {
                 writer.write(CsvConverter.toCsv(task) + "\n");
             }
@@ -130,6 +129,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                     case TASK: {
                         Task task = (Task) parsed;
                         getTasksMap().put(task.getId(), task);
+                        registerTaskFromFile(task);
                         if (task.getId() != null && task.getId() > maxId) {
                             maxId = task.getId();
                         }
@@ -153,6 +153,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 if (parsed.getType() == SUBTASK) {
                     Subtask subtask = (Subtask) parsed;
                     getSubtasksMap().put(subtask.getId(), subtask);
+                    registerTaskFromFile(subtask);
                     Epic epic = getEpicsMap().get(subtask.getEpicId());
                     if (epic != null) {
                         epic.addSubtask(subtask.getId());
@@ -177,18 +178,32 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
 
+    private void registerTaskFromFile(Task task) {
+        if (task == null) return;
+        if (task.getType() == TaskType.EPIC) return;
+        addPrioritizedTask(task);
+    }
+
     public static void main(String[] args) {
         File file = new File("tasks.csv");
+
+        if (file.exists()) {
+            file.delete();
+        }
 
         FileBackedTaskManager manager = new FileBackedTaskManager(file);
 
         Task task1 = new Task(null, "Первое задание", "Описание первого задания", Status.NEW);
+        task1.setDuration(Duration.ofMinutes(90));
+        task1.setStartTime(LocalDateTime.of(2025, 9, 25, 10, 0)); // Изменил дату чтобы избежать пересечения
         manager.addTask(task1);
 
         Epic epic1 = new Epic(null, "Первый эпик", "Описание первого эпика", Status.NEW);
         manager.addEpic(epic1);
 
-        Subtask subtask1 = new Subtask("Первая подзадача", "Описание первой подзадачи", Status.NEW, epic1.getId()); // Передаем null
+        Subtask subtask1 = new Subtask("Первая подзадача", "Описание первой подзадачи", Status.NEW, epic1.getId());
+        subtask1.setDuration(Duration.ofMinutes(30));
+        subtask1.setStartTime(LocalDateTime.of(2025, 9, 26, 11, 0)); // Изменил дату чтобы избежать пересечения
         manager.addSubtask(subtask1);
 
         System.out.println("Список задач:");

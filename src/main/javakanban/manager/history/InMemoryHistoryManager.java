@@ -9,7 +9,6 @@ import java.util.Map;
 
 public class InMemoryHistoryManager implements HistoryManager {
 
-
     private final Map<Integer, Node> history = new HashMap<>();
     private Node first;
     private Node last;
