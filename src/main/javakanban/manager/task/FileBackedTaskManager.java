@@ -181,21 +181,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     private void registerTaskFromFile(Task task) {
         if (task == null) return;
         if (task.getType() == TaskType.EPIC) return;
-        addToPrioritized(task);
-        addToTimeSlots(task);
-    }
-
-    private void addToPrioritized(Task task) {
-        if (task == null) return;
-        if (task.getType() == TaskType.EPIC) return;
-        getPrioritized().add(task);
-    }
-
-    private void addToTimeSlots(Task task) {
-        if (task == null) return;
-        if (task.getType() == TaskType.EPIC) return;
-        if (task.getStartTime() == null || task.getEndTime() == null) return;
-        addIntervalToSlots(task.getStartTime(), task.getEndTime());
+        addPrioritizedTask(task);
     }
 
     public static void main(String[] args) {
