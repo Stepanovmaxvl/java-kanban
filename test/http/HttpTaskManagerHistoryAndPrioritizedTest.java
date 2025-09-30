@@ -162,7 +162,7 @@ public class HttpTaskManagerHistoryAndPrioritizedTest {
 
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-        assertEquals(404, response.statusCode());
+        assertEquals(405, response.statusCode());
     }
 
     @Test
@@ -177,7 +177,7 @@ public class HttpTaskManagerHistoryAndPrioritizedTest {
 
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-        assertEquals(404, response.statusCode());
+        assertEquals(405, response.statusCode());
     }
 }
 

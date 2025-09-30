@@ -1,5 +1,6 @@
 package test.http;
 
+import com.google.gson.Gson;
 import main.javakanban.http.HttpTaskServer;
 import main.javakanban.manager.task.InMemoryTaskManager;
 import main.javakanban.manager.task.TaskManager;
@@ -23,6 +24,7 @@ public class HttpTaskManagerEpicsTest {
 
     private TaskManager manager;
     private HttpTaskServer taskServer;
+    private final Gson gson = new Gson();
 
     public HttpTaskManagerEpicsTest() throws IOException {
         manager = new InMemoryTaskManager();
@@ -121,14 +123,41 @@ public class HttpTaskManagerEpicsTest {
     @Test
     public void testGetEpicSubtasks() throws IOException, InterruptedException {
 
-        Epic epic = new Epic("Test Epic", "Testing epic");
-        Epic addedEpic = manager.addEpic(epic);
-
-        Subtask subtask = new Subtask("Test Subtask", "Testing subtask", Status.NEW, addedEpic.getId());
-        manager.addSubtask(subtask);
-
+        String epicJson = "{\"name\":\"Test Epic\",\"description\":\"Testing epic\",\"status\":\"NEW\"}";
         HttpClient client = HttpClient.newHttpClient();
-        URI url = URI.create("http://localhost:8080/epics/" + addedEpic.getId() + "/subtasks");
+
+        URI epicUrl = URI.create("http://localhost:8080/epics");
+        HttpRequest epicRequest = HttpRequest.newBuilder()
+                .uri(epicUrl)
+                .POST(HttpRequest.BodyPublishers.ofString(epicJson))
+                .header("Content-Type", "application/json")
+                .build();
+
+        HttpResponse<String> epicResponse = client.send(epicRequest, HttpResponse.BodyHandlers.ofString());
+        assertEquals(201, epicResponse.statusCode());
+
+        String epicResponseBody = epicResponse.body();
+        String idPattern = "\"id\":(\\d+)";
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(idPattern);
+        java.util.regex.Matcher matcher = pattern.matcher(epicResponseBody);
+        Integer epicId = null;
+        if (matcher.find()) {
+            epicId = Integer.parseInt(matcher.group(1));
+        }
+
+        String subtaskJson = "{\"name\":\"Test Subtask\",\"description\":\"Testing subtask\",\"status\":\"NEW\",\"epicId\":" + epicId + "}";
+
+        URI subtaskUrl = URI.create("http://localhost:8080/subtasks");
+        HttpRequest subtaskRequest = HttpRequest.newBuilder()
+                .uri(subtaskUrl)
+                .POST(HttpRequest.BodyPublishers.ofString(subtaskJson))
+                .header("Content-Type", "application/json")
+                .build();
+
+        HttpResponse<String> subtaskResponse = client.send(subtaskRequest, HttpResponse.BodyHandlers.ofString());
+        assertEquals(201, subtaskResponse.statusCode());
+
+        URI url = URI.create("http://localhost:8080/epics/" + epicId + "/subtasks");
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(url)
                 .GET()
