@@ -195,7 +195,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
         Task task1 = new Task(null, "Первое задание", "Описание первого задания", Status.NEW);
         task1.setDuration(Duration.ofMinutes(90));
-        task1.setStartTime(LocalDateTime.of(2025, 9, 25, 10, 0)); // Изменил дату чтобы избежать пересечения
+        task1.setStartTime(LocalDateTime.of(2025, 9, 25, 10, 0));
         manager.addTask(task1);
 
         Epic epic1 = new Epic(null, "Первый эпик", "Описание первого эпика", Status.NEW);
@@ -203,7 +203,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
         Subtask subtask1 = new Subtask("Первая подзадача", "Описание первой подзадачи", Status.NEW, epic1.getId());
         subtask1.setDuration(Duration.ofMinutes(30));
-        subtask1.setStartTime(LocalDateTime.of(2025, 9, 26, 11, 0)); // Изменил дату чтобы избежать пересечения
+        subtask1.setStartTime(LocalDateTime.of(2025, 9, 26, 11, 0));
         manager.addSubtask(subtask1);
 
         System.out.println("Список задач:");

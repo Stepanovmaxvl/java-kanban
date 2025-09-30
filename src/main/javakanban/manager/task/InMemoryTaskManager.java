@@ -1,6 +1,7 @@
 package main.javakanban.manager.task;
 
 import main.javakanban.exception.TimeIntervalConflictException;
+import main.javakanban.exception.NotFoundException;
 import main.javakanban.manager.history.HistoryManager;
 import main.javakanban.manager.history.InMemoryHistoryManager;
 import main.javakanban.model.Epic;
@@ -149,7 +150,7 @@ public class InMemoryTaskManager implements TaskManager {
     public Task getTaskByID(int id) {
         Task task = tasks.get(id);
         if (task == null) {
-            return task;
+            throw new NotFoundException("Task with id " + id + " not found");
         }
         historyManager.add(task);
         return task;
@@ -159,7 +160,7 @@ public class InMemoryTaskManager implements TaskManager {
     public Epic getEpicByID(int id) {
         Epic epic = epics.get(id);
         if (epic == null) {
-            return epic;
+            throw new NotFoundException("Epic with id " + id + " not found");
         }
         historyManager.add(epic);
         return epic;
@@ -167,10 +168,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Subtask getSubtaskByID(int id) {
-
         Subtask subtask = subtasks.get(id);
         if (subtask == null) {
-            return subtask;
+            throw new NotFoundException("Subtask with id " + id + " not found");
         }
         historyManager.add(subtask);
         return subtask;
@@ -193,7 +193,11 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public ArrayList<Subtask> getEpicSubtasks(int id) {
-        ArrayList<Integer> subtaskId = epics.get(id).getSubtaskId();
+        Epic epic = epics.get(id);
+        if (epic == null) {
+            throw new NotFoundException("Epic with id " + id + " not found");
+        }
+        ArrayList<Integer> subtaskId = epic.getSubtaskId();
         return subtaskId.stream()
                 .map(subtasks::get)
                 .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
